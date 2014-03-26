@@ -28,7 +28,7 @@ def split(data, bin_len=400, bin_overlap=160):
         bins.append(data[i:i+bin_len])
     if len(bins[-1]) != bin_len: # if last bin is short of len
         bins[-1] += [0] * (bin_len - len(bins[-1])) # zero pad it
-    return bins[-1]
+    return bins[0]
 
 def power_spectrum(bins):
     spectrum = np.fft.rfft(bins)
@@ -107,7 +107,7 @@ print power_spectrum(bins)
 # print len(data)
 # bins, num_bins = split(data)
 # print num_bins
-# print plot_wave(rate, power_spectrum)
+print plot_wave(rate, data)
 
 
 
