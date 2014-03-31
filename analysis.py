@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import wave
 import sys
 import math
+from scipy.fftpack import dct
+import itertools
+
 
 
 def read_file(filename):
@@ -15,11 +18,23 @@ def read_file(filename):
     rate= raw.getframerate()
     return rate, data
 
+
 def normalize(data):
     data_max = max([abs(val) for val in data])
     new_range_val = 1
     data = [float(val)/data_max * new_range_val for val in data]
     return data
+
+def get_threshhold(data, thresh=.1):
+    for i in range(len(data)):
+        if data[i] >= thresh:
+            return i 
+
+def new_data_start(data, threshhold):
+    data = data[threshhold:49000]
+    return data
+
+
 
 
 def split(data, bin_len=400, bin_overlap=160):
@@ -28,12 +43,19 @@ def split(data, bin_len=400, bin_overlap=160):
         bins.append(data[i:i+bin_len])
     if len(bins[-1]) != bin_len: # if last bin is short of len
         bins[-1] += [0] * (bin_len - len(bins[-1])) # zero pad it
-    return bins[0]
+    if len(bins[-2]) != bin_len: # if last bin is short of len
+        bins[-2] += [0] * (bin_len - len(bins[-2]))
+    num_of_bins = len(bins)
+    return bins
 
-def power_spectrum(bins):
-    spectrum = np.fft.rfft(bins)
-    magnitude = np.absolute(spectrum)
-    power_spectrum = np.square(magnitude)
+
+def get_power_spectrum(bins):
+    power_spectrum = []
+    for bin in bins:
+        spectrum = np.fft.rfft(bin)
+        magnitude = np.absolute(spectrum)
+        power = np.square(magnitude)
+        power_spectrum.append(power)
     return power_spectrum
 
 def hertz_mels(hertz):
@@ -44,6 +66,57 @@ def mels_hertz(mels):
     hertz = 700*(10**(mels/2595.0)-1)
     return hertz
 
+def mel_filterbank(power_spectrum):
+    block_size = int(len(power_spectrum[0]))
+    num_bands = int(13)
+    min_hz = 0
+    max_hz = 8000
+    max_mel = int(hertz_mels(max_hz))
+    min_mel = int(mels_hertz(min_hz))
+
+    filter_matrix = np.zeros((num_bands, block_size))
+
+    mel_range = np.array(xrange(num_bands + 2))
+
+    mel_centers = mel_range * (max_mel - min_mel)/(num_bands + 1) + min_mel
+
+    aux = np.log(1 + 1000.0 / 700.0) / 1000.0
+    aux = (np.exp(mel_centers * aux) -1) / 22050
+    aux = 0.5 + 700 * block_size * aux
+    aux = np.floor(aux)
+    center_index = np.array(aux, int)
+
+
+    for i in xrange(num_bands):
+        start, center, end = center_index[i:i + 3]
+        k1 = np.float32(center - start)
+        k2 = np.float32(end - center)
+        up = (np.array(xrange(start, center)) - start) / k1
+        down = (end - np.array(xrange(center, end))) / k2
+
+        filter_matrix[i][start:center] = up
+        filter_matrix[i][center:end] = down
+
+    return filter_matrix.transpose()
+
+def MFCC(power_spectrum, filter_matrix):
+    dct_spectrum = []
+    for power in power_spectrum:
+        filtered_spectrum = np.dot(power, filter_matrix)
+        log_spectrum = np.log(filtered_spectrum)
+        dct_item= dct(log_spectrum, type=2)
+        dct_spectrum.append(dct_item)
+    return dct_spectrum
+
+# def un_split(dct_spectrum):
+#     new_dct_spectrum = [item for sublist in dct_spectrum for item in sublist]
+
+#     # new_dct_spectrum = []
+#     # for dct_item in dct_spectrum:
+#     #     for item in dct_item:
+#     #         new_dct_spectrum.append(item)
+#     return new_dct_spectrum
+
 
 def plot_wave(rate, data):
     Time=np.linspace(0, len(data)/rate, num=len(data))
@@ -52,114 +125,34 @@ def plot_wave(rate, data):
     plt.plot(Time,data)
     return plt.show()
 
-def get_filterbanks(nfilt=40,nfft=400,samplerate=16000,lowfreq=0, highfreq=8000):
 
-    # highfreq= highfreq or samplerate/2
+def master(filename):
+    rate, data = read_file(filename)
+    data = normalize(data)
+    # threshhold = get_threshhold(data)
+    # data = new_data_start(data, threshhold)
+    bins = split(data)
+    power_spectrum = get_power_spectrum(bins)
+    filter_matrix = mel_filterbank(power_spectrum)
+    dct_spectrum = MFCC(power_spectrum, filter_matrix)
+    # new_dct_spectrum = un_split(dct_spectrum)
+
+    # plt.show() = plot_wave(rate, data)
+
+    return dct_spectrum
     
-    # compute points evenly spaced in mels
-    low_mel = hertz_mels(lowfreq)
-    high_mel = hertz_mels(highfreq)
-    mel_points = np.linspace(low_mel,high_mel,nfilt+2)
-    # our points are in Hz, but we use fft bins, so we have to convert
-    #  from Hz to fft bin number
-    bin = np.floor((nfft+1)*mels_hertz(mel_points)/samplerate)
 
-    fbank = np.zeros([nfilt,nfft/2+1])
-    for j in xrange(0,nfilt):
-        for i in xrange(int(bin[j]),int(bin[j+1])):
-            fbank[j,i] = (i - bin[j])/(bin[j+1]-bin[j])
-        for i in xrange(int(bin[j+1]),int(bin[j+2])):
-            fbank[j,i] = (bin[j+2]-i)/(bin[j+2]-bin[j+1])
-    return mel_points, fbank
+# print master("Alohamora_6.wav")
+# rate, data = read_file("Alohamora_1.wav")
+# data = normalize(data)
+# print data[0:100]
 
-def fbank(power_spectrum,fbank,samplerate=16000,nfilt=40,nfft=400,lowfreq=0,highfreq=8000):
-         
-    energy = np.sum(power_spectrum) # this stores the total energy in each frame
+
     
- 
-    feature = np.dot(power_spectrum,fbank) # compute the filterbank energies
-    feature = np.log(feature)
-    return energy 
-
-def mfcc(feature, energy, numcep=13, appendEnergy=True):
-    feature = dct(feature)[:,:numcep]
-    if appendEnergy: feat[:,0] = numpy.log(energy) # replace first cepstral coefficient with log of frame energy
-    return feature
 
 
 
 
-rate, data = read_file("Alohamora_1.wav")
-data = normalize(data)
-bins = split(data)
-# print bins
-print power_spectrum(bins)
-
-# print get_filterbanks(nfilt=40,samplerate=16000,lowfreq=0, highfreq=8000)
-# print fbank(power_spectrum,fbank,samplerate=16000,nfilt=40,nfft=400,lowfreq=0,highfreq=8000)
-# print mfcc(feature, numcep=13)
-
-
-
-# print power_spectrum
-
-
-# print len(data)
-# bins, num_bins = split(data)
-# print num_bins
-print plot_wave(rate, data)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# print plot_wave(rate, data)
-
-# bins = split(data)
-
-# bins = get_ffts(bins)
-
-# print get_freqs(bins)
-
-# max_ffts = get_max_ffts(bins)
-
-
-
-
-# fft_1 = get_fft(bins["bin_1"])
-# fft_2 = get_fft(bins["bin_2"])
-# fft_3 = get_fft(bins["bin_3"])
-# fft_4 = get_fft(bins["bin_4"])
-# fft_5 = get_fft(bins["bin_5"])
-
-
-
-
-
-# print data
-# print ffts["fft_1"]
-# print max(fft_2)
-# print max(fft_3)
-# print max(fft_4)
-# print max(fft_5)
-# print plot_wave(rate, data)
-# print fft
-# print get_fft(data)
-
-
-# print split(data)
 
 
 

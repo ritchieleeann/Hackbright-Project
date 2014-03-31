@@ -1,34 +1,13 @@
 import math
 import analysis_2
-
-rate1, data1 = analysis_2.read_file("Alohamora_1.wav")
-data1 = analysis_2.normalize(data1)
-bins1 = analysis_2.split(data1)
-
-power_spectrum1 = analysis_2.power_spectrum(bins1)
-
-filter_matrix1 = analysis_2.mel_filterbank(power_spectrum1)
+import numpy as np
+import os
 
 
-dct_spectrum1 = analysis_2.MFCC(power_spectrum1, filter_matrix1)
-
-
-rate2, data2 = analysis_2.read_file("Alohamora_3.wav")
-data2 = analysis_2.normalize(data2)
-bins2 = analysis_2.split(data2)
-
-power_spectrum2 = analysis_2.power_spectrum(bins2)
-
-filter_matrix2 = analysis_2.mel_filterbank(power_spectrum2)
-
-
-dct_spectrum2 = analysis_2.MFCC(power_spectrum2, filter_matrix2)
-
-
-seqx = dct_spectrum1[100]
-seqy = dct_spectrum2[100]
+seqx = analysis_2.master(os.path.abspath("audios/Alohamora_3.wav"))
+seqy = analysis_2.master(os.path.abspath("audios/Hunter_Alohamora.wav"))
  
-def dynamicTimeWarp(seqA, seqB, d = lambda x,y: abs(x-y)):
+def dynamicTimeWarp(seqA, seqB, d = lambda x,y: (abs(np.dot(x,y))/np.linalg.norm(x))):
     # create the cost matrix
     numRows, numCols = len(seqA), len(seqB)
     cost = [[0 for _ in range(numCols)] for _ in range(numRows)]
@@ -47,10 +26,60 @@ def dynamicTimeWarp(seqA, seqB, d = lambda x,y: abs(x-y)):
             choices = cost[i-1][j], cost[i][j-1], cost[i-1][j-1]
             cost[i][j] = min(choices) + d(seqA[i], seqB[j])
  
-    for row in cost:
-       for entry in row:
-          print "%03d" % entry,
-       print ""
-    return cost[-1][-1]
+    # for row in cost:
+       # for entry in row:
+       #    print "%03d" % entry,
+       # print ""
+    test_cost = cost[-1][-1]
+
+    return test_cost
+
+# def match_test(test_cost):
+#     if test_cost <= 18000:
+#         return True
+#     else:
+#         return False
+
 
 print dynamicTimeWarp(seqx,seqy)
+# print match_test(test_cost)
+# print test_cost 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def alternateDTW(seqA, seqB, distance=lambda x,y: abs(np.dot(x,y))):
+#     row = []
+#     current_seqA = seqA[0]
+#     for val_seqB in seqB:
+#         row.append(distance(current_seqA, val_seqB))
+
+#     for val_seqA in range(1, len(seqA)):
+#         current_seqA = seqB[val_seqA]
+
+#         temp = row[0]
+#         row[0] = distance(current_seqA, seqB[0]) + row[0]
+
+#         for i in range (1, len(seqB)):
+#             temp_2 = row[i]
+
+#             row[i] = distance(current_seqA, seqB[i]) + min(row[i-1], temp, temp_2)
+
+#             temp = temp_2
+
+#     return row[-1]        
+
+
+
+# print alternateDTW(seqx, seqy, distance=lambda x,y: abs(np.dot(x,y)))
