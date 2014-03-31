@@ -5,10 +5,7 @@ import wave
 import sys
 import math
 from scipy.fftpack import dct
-
-num_coefficients = 13 
-min_hz = 0
-max_hz= 8000
+import itertools
 
 
 
@@ -21,11 +18,23 @@ def read_file(filename):
     rate= raw.getframerate()
     return rate, data
 
+
 def normalize(data):
     data_max = max([abs(val) for val in data])
     new_range_val = 1
     data = [float(val)/data_max * new_range_val for val in data]
     return data
+
+def get_threshhold(data, thresh=.1):
+    for i in range(len(data)):
+        if data[i] >= thresh:
+            return i 
+
+def new_data_start(data, threshhold):
+    data = data[threshhold:49000]
+    return data
+
+
 
 
 def split(data, bin_len=400, bin_overlap=160):
@@ -34,11 +43,13 @@ def split(data, bin_len=400, bin_overlap=160):
         bins.append(data[i:i+bin_len])
     if len(bins[-1]) != bin_len: # if last bin is short of len
         bins[-1] += [0] * (bin_len - len(bins[-1])) # zero pad it
+    if len(bins[-2]) != bin_len: # if last bin is short of len
+        bins[-2] += [0] * (bin_len - len(bins[-2]))
     num_of_bins = len(bins)
     return bins
 
 
-def power_spectrum(bins):
+def get_power_spectrum(bins):
     power_spectrum = []
     for bin in bins:
         spectrum = np.fft.rfft(bin)
@@ -46,15 +57,6 @@ def power_spectrum(bins):
         power = np.square(magnitude)
         power_spectrum.append(power)
     return power_spectrum
-
-def MFCC(power_spectrum, filter_matrix):
-    dct_spectrum = []
-    for power in power_spectrum:
-        filtered_spectrum = np.dot(power, filter_matrix)
-        log_spectrum = np.log(filtered_spectrum)
-        dct_item= dct(log_spectrum, type=2)
-        dct_spectrum.append(dct_item)
-    return dct_spectrum
 
 def hertz_mels(hertz):
     mels = 2595 * np.log10(1+hertz/700.0)
@@ -66,7 +68,9 @@ def mels_hertz(mels):
 
 def mel_filterbank(power_spectrum):
     block_size = int(len(power_spectrum[0]))
-    num_bands = int(num_coefficients)
+    num_bands = int(13)
+    min_hz = 0
+    max_hz = 8000
     max_mel = int(hertz_mels(max_hz))
     min_mel = int(mels_hertz(min_hz))
 
@@ -95,6 +99,23 @@ def mel_filterbank(power_spectrum):
 
     return filter_matrix.transpose()
 
+def MFCC(power_spectrum, filter_matrix):
+    dct_spectrum = []
+    for power in power_spectrum:
+        filtered_spectrum = np.dot(power, filter_matrix)
+        log_spectrum = np.log(filtered_spectrum)
+        dct_item= dct(log_spectrum, type=2)
+        dct_spectrum.append(dct_item)
+    return dct_spectrum
+
+# def un_split(dct_spectrum):
+#     new_dct_spectrum = [item for sublist in dct_spectrum for item in sublist]
+
+#     # new_dct_spectrum = []
+#     # for dct_item in dct_spectrum:
+#     #     for item in dct_item:
+#     #         new_dct_spectrum.append(item)
+#     return new_dct_spectrum
 
 
 def plot_wave(rate, data):
@@ -105,42 +126,31 @@ def plot_wave(rate, data):
     return plt.show()
 
 
-def master:
-    pass
+def master(filename):
+    rate, data = read_file(filename)
+    data = normalize(data)
+    # threshhold = get_threshhold(data)
+    # data = new_data_start(data, threshhold)
+    bins = split(data)
+    power_spectrum = get_power_spectrum(bins)
+    filter_matrix = mel_filterbank(power_spectrum)
+    dct_spectrum = MFCC(power_spectrum, filter_matrix)
+    # new_dct_spectrum = un_split(dct_spectrum)
 
+    # plt.show() = plot_wave(rate, data)
 
+    return dct_spectrum
+    
 
+# print master("Alohamora_6.wav")
+# rate, data = read_file("Alohamora_1.wav")
+# data = normalize(data)
+# print data[0:100]
 
 
     
 
 
-rate, data = read_file("Alohamora_4.wav")
-data = normalize(data)
-# print len(data)
-bins = split(data)
-# print "number of bins is %s" % len(bins)
-# print "len of each bin is %s" % len(bins[-1])
-power_spectrum = power_spectrum(bins)
-# print "len of power_spectrum is %s" % len(power_spectrum)
-# print "len of each in power_spectrum is %s" % len(power_spectrum[0])
-# print power_spectrum[0].shape
-filter_matrix = mel_filterbank(power_spectrum)
-# print filter_matrix.shape
-
-dct_spectrum = MFCC(power_spectrum, filter_matrix)
-
-print dct_spectrum[0]
-
-
-
-
-
-
-
-
-
-# print plot_wave(rate, data)
 
 
 
