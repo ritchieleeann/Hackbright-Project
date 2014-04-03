@@ -26,15 +26,25 @@ def normalize(data):
     data = [float(val)/data_max * new_range_val for val in data]
     return data
 
-# def get_threshhold(data, thresh=.1):
-#     for i in range(len(data)):
-#         if data[i] >= thresh:
-#             return i 
+def get_threshhold(data, thresh=.15):
+    for i in range(len(data)):
+        if data[i] >= thresh:
+            return i
 
-# def new_data_start(data, threshhold):
-#     data = data[threshhold:49000]
-#     return data
+def get_end(data, end_thresh=.1):
+    for i in reversed(range(len(data))):
+        if data[i] >= end_thresh:
+            return i
 
+def new_data_start(data, threshhold, end):
+    data = data[threshhold:end]
+    return data
+
+# def new_end_data(data):
+#     if len(data) <= 36000:
+#         return data
+#     else:
+#         return data[:36000]
 
 def split(data, bin_len=400, bin_overlap=160):
     bins = []
@@ -47,6 +57,11 @@ def split(data, bin_len=400, bin_overlap=160):
     num_of_bins = len(bins)
     return bins
 
+# def get_threshhold(bins, thresh=0.0016):
+#     for i in range(len(bins)):
+#         if abs(sum(bins[i]))/len(bins[i]) >= thresh:
+#             return i
+
 
 def get_power_spectrum(bins):
     power_spectrum = []
@@ -56,6 +71,13 @@ def get_power_spectrum(bins):
         power = np.square(magnitude)
         power_spectrum.append(power)
     return power_spectrum
+
+# thresh=0.248090529525
+
+# def get_threshhold(power_spectrum, thresh=0.6):
+#     for i in range(len(power_spectrum)):
+#         if sum(power_spectrum[i])/len(power_spectrum[i]) >= thresh:
+#             return i
 
 def hertz_mels(hertz):
     mels = 2595 * np.log10(1+hertz/700.0)
@@ -107,6 +129,14 @@ def MFCC(power_spectrum, filter_matrix):
         dct_spectrum.append(dct_item)
     return dct_spectrum
 
+def get_average(dct_spectrum):
+    #take average MFCC for each bin
+    avg_spectrum = []
+    for each in dct_spectrum:
+        avg = sum(each)/len(each)
+        avg_spectrum.append(avg)
+    return avg_spectrum
+
 # def un_split(dct_spectrum):
 #     new_dct_spectrum = [item for sublist in dct_spectrum for item in sublist]
 
@@ -128,15 +158,18 @@ def plot_wave(rate, data):
 def master(filename):
     rate, data = read_file(filename)
     data = normalize(data)
+    threshhold = get_threshhold(data)
+    end = get_end(data)
+    data = new_data_start(data, threshhold, end)
+    # data = new_end_data(data)
     bins = split(data)
+    # threshhold = get_threshhold(bins)
     power_spectrum = get_power_spectrum(bins)
+    # threshhold = get_threshhold(power_spectrum)
     filter_matrix = mel_filterbank(power_spectrum)
     dct_spectrum = MFCC(power_spectrum, filter_matrix)
-    #take average MFCC for each bin
-    avg_spectrum = []
-    for each in dct_spectrum:
-        avg = sum(each)/len(each)
-        avg_spectrum.append(avg)
+    avg_spectrum = get_average(dct_spectrum)
+
 
     # new_dct_spectrum = un_split(dct_spectrum)
 
@@ -145,7 +178,8 @@ def master(filename):
     return avg_spectrum
     
 
-# print master(os.path.abspath("audios/Alohamora_3.wav"))
+# print master(os.path.abspath("audios/input_full_len.wav"))
+# print master(os.path.abspath("test.wav"))
 # rate, data = read_file("Alohamora_1.wav")
 # data = normalize(data)
 # print data[0:100]

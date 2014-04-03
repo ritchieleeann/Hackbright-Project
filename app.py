@@ -33,7 +33,7 @@ def authorization():
 
         match = dynamic.match_test(cost)
 
-    return "hello %r" % cost
+    return "%r" % match
 
 if __name__=="__main__":
     app.run(debug=True)

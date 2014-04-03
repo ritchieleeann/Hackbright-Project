@@ -37,10 +37,10 @@ def dynamicTimeWarp(seqA, seqB, d = lambda x,y: abs(x-y)):
     return test_cost
 
 def match_test(test_cost):
-    if test_cost <= 300:
-        return True
+    if test_cost <= 150:
+        return "a match"
     else:
-        return False
+        return "not a match"
 
 
 # print dynamicTimeWarp(seqx,seqy)
