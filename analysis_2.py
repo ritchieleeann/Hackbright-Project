@@ -6,6 +6,7 @@ import sys
 import math
 from scipy.fftpack import dct
 import itertools
+import os
 
 
 
@@ -25,16 +26,14 @@ def normalize(data):
     data = [float(val)/data_max * new_range_val for val in data]
     return data
 
-def get_threshhold(data, thresh=.1):
-    for i in range(len(data)):
-        if data[i] >= thresh:
-            return i 
+# def get_threshhold(data, thresh=.1):
+#     for i in range(len(data)):
+#         if data[i] >= thresh:
+#             return i 
 
-def new_data_start(data, threshhold):
-    data = data[threshhold:49000]
-    return data
-
-
+# def new_data_start(data, threshhold):
+#     data = data[threshhold:49000]
+#     return data
 
 
 def split(data, bin_len=400, bin_overlap=160):
@@ -129,20 +128,24 @@ def plot_wave(rate, data):
 def master(filename):
     rate, data = read_file(filename)
     data = normalize(data)
-    # threshhold = get_threshhold(data)
-    # data = new_data_start(data, threshhold)
     bins = split(data)
     power_spectrum = get_power_spectrum(bins)
     filter_matrix = mel_filterbank(power_spectrum)
     dct_spectrum = MFCC(power_spectrum, filter_matrix)
+    #take average MFCC for each bin
+    avg_spectrum = []
+    for each in dct_spectrum:
+        avg = sum(each)/len(each)
+        avg_spectrum.append(avg)
+
     # new_dct_spectrum = un_split(dct_spectrum)
 
     # plt.show() = plot_wave(rate, data)
 
-    return dct_spectrum
+    return avg_spectrum
     
 
-# print master("Alohamora_6.wav")
+# print master(os.path.abspath("audios/Alohamora_3.wav"))
 # rate, data = read_file("Alohamora_1.wav")
 # data = normalize(data)
 # print data[0:100]

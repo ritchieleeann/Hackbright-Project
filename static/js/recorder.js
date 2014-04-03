@@ -80,26 +80,37 @@ window.onkeydown = function(e){
         
         // our final binary blob
         var blob = new Blob ( [ view ], { type : 'audio/wav' } );
+        uploadBlob(blob);
 
-        var audio_form = document.getElementById("audio_form");
 
-        var audio_data = document.getElementById("audio_data");
-
-        audio_data.value = blob;
-
-        audio_form.submit();
-        
-        // // let's save it locally
-        // outputElement.innerHTML = 'Handing off the file now...';
-        // var url = (window.URL || window.webkitURL).createObjectURL(blob);
-        // var link = window.document.createElement('a');
-        // link.href = url;
-        // link.download = 'output.wav';
-        // var click = document.createEvent("Event");
-        // click.initEvent("click", true, true);
-        // link.dispatchEvent(click);
     }
 }
+
+
+function uploadBlob(blob){
+
+    var reader = new FileReader();
+    // this function is triggered once a call to readAsDataURL returns
+    reader.onload = function(event){
+        var fd = new FormData();
+        fd.append('fname', 'test.wav');
+        fd.append('audio', event.target.result);
+        $.ajax({
+            type: 'POST',
+            url: '/authorized',
+            data: fd,
+            processData: false,
+            contentType: false
+        }).done(function(data) {
+            // print the output from the upload script
+            console.log(data);
+        });
+    };      
+    // trigger the read from the reader...
+    reader.readAsDataURL(blob);
+    outputElement.innerHTML = 'Your password is...';
+}
+
 
 function interleave(leftChannel, rightChannel){
   var length = leftChannel.length + rightChannel.length;
