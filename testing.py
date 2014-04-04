@@ -11,6 +11,7 @@ def get_seq(audio):
     return analysis_2.master(os.path.abspath(audio))
 
 
+print test("audios/open_pod.wav", "test.wav")
 
 
 #should match perfectly
@@ -31,13 +32,13 @@ def get_seq(audio):
 
 # print test("audios/Alohamora_2.wav", "audios/Alohamora_5.wav")
 
-# print test("audios/input_full_len", "audios/Alohamora_3.wav")
+# print test("audios/input_full_len.wav", "audios/Alohamora_3.wav")
 
-# print test("audios/input_full_len", "audios/Alohamora_2.wav")
+# print test("audios/input_full_len.wav", "audios/Alohamora_2.wav")
 
-# print test("audios/input_full_len", "audios/Alohamora_5.wav")
+# print test("audios/input_full_len.wav", "audios/Alohamora_5.wav")
 
-# #word matches but person is different
+# # #word matches but person is different
 # print "Lizz"
 
 # print test("audios/Alohamora_3.wav", "audios/Lizz_Alohamora.wav")
@@ -201,17 +202,21 @@ def get_seq(audio):
 
 # print "files via browser"
 
-# print test("audios/Alohamora_3.wav", "audios/input_full_len.wav")
+# print test("audios/Alohamora_3.wav", "audios/Alohamora_3.wav")
 
-# print test("audios/Alohamora_2.wav", "audios/input_full_len.wav")
+# print test("audios/open_pod.wav", "test.wav")
 
 # print test("audios/Alohamora_5.wav", "audios/input_full_len.wav")
 
 
 
-print test("audios/input_full_len.wav", "test.wav")
+# print test("audios/input_full_len.wav", "test.wav")
 
-print test("audios/Alohamora_3.wav", "test.wav")
+# print test("audios/Alohamora_3.wav", "test.wav")
+
+# print test("audios/Alohamora_2.wav", "test.wav")
+
+# print test("audios/Alohamora_5.wav", "test.wav")
 
 
 

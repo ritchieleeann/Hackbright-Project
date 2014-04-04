@@ -8,8 +8,10 @@ import os
 # seqx = analysis_2.master(os.path.abspath("audios/Alohamora_3.wav"))
 # seqy = analysis_2.master(os.path.abspath("audios/Alohamora_3.wav"))
  
+def square(x):
+    return x*x
 
-def dynamicTimeWarp(seqA, seqB, d = lambda x,y: abs(x-y)):
+def dynamicTimeWarp(seqA, seqB, d = lambda x,y: square(abs(x-y))):
     # create the cost matrix
     numRows, numCols = len(seqA), len(seqB)
     cost = [[0 for _ in range(numCols)] for _ in range(numRows)]
@@ -37,10 +39,10 @@ def dynamicTimeWarp(seqA, seqB, d = lambda x,y: abs(x-y)):
     return test_cost
 
 def match_test(test_cost):
-    if test_cost <= 150:
-        return "a match"
+    if test_cost <= 1000:
+        return True
     else:
-        return "not a match"
+        return False
 
 
 # print dynamicTimeWarp(seqx,seqy)

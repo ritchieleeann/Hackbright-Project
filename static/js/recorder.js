@@ -39,7 +39,7 @@ window.onkeydown = function(e){
         // we stop recording
         recording = false;
         
-        outputElement.innerHTML = 'Building wav file...';
+        outputElement.innerHTML = 'Testing password...';
 
         // we flat the left and right channels down
         var leftBuffer = mergeBuffers ( leftchannel, recordingLength );
@@ -97,18 +97,24 @@ function uploadBlob(blob){
         fd.append('audio', event.target.result);
         $.ajax({
             type: 'POST',
-            url: '/authorized',
+            url: '/authorizing',
             data: fd,
             processData: false,
             contentType: false
         }).done(function(data) {
             // print the output from the upload script
             console.log(data);
+            if (data == "match"){
+                outputElement.innerHTML ='Your password is correct';
+            }
+            else {
+                outputElement.innerHTML ='Your password is incorrect';
+            }
         });
     };      
     // trigger the read from the reader...
     reader.readAsDataURL(blob);
-    outputElement.innerHTML = 'Your password is...';
+    // outputElement.innerHTML = 'Your password is incorrect';
 }
 
 

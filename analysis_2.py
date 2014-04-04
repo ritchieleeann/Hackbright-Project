@@ -19,7 +19,6 @@ def read_file(filename):
     rate= raw.getframerate()
     return rate, data
 
-
 def normalize(data):
     data_max = max([abs(val) for val in data])
     new_range_val = 1
@@ -36,15 +35,13 @@ def get_end(data, end_thresh=.1):
         if data[i] >= end_thresh:
             return i
 
-def new_data_start(data, threshhold, end):
+def new_data_start(data, threshhold, end, min_len=40000):
     data = data[threshhold:end]
-    return data
+    if len(data) >= min_len:
+        return data
+    else:
+        return [0] * len(data)
 
-# def new_end_data(data):
-#     if len(data) <= 36000:
-#         return data
-#     else:
-#         return data[:36000]
 
 def split(data, bin_len=400, bin_overlap=160):
     bins = []
@@ -57,11 +54,13 @@ def split(data, bin_len=400, bin_overlap=160):
     num_of_bins = len(bins)
     return bins
 
-# def get_threshhold(bins, thresh=0.0016):
-#     for i in range(len(bins)):
-#         if abs(sum(bins[i]))/len(bins[i]) >= thresh:
-#             return i
-
+def freq_split(data, bin_len=400, bin_overlap=0):
+    f_bins = []
+    for i in range(0,len(data), bin_len-bin_overlap):
+        f_bins.append(data[i:i+bin_len])
+    if len(f_bins[-1]) != bin_len: # if last bin is short of len
+        f_bins[-1] += [0] * (bin_len - len(f_bins[-1])) # zero pad it
+    return f_bins
 
 def get_power_spectrum(bins):
     power_spectrum = []
@@ -72,12 +71,17 @@ def get_power_spectrum(bins):
         power_spectrum.append(power)
     return power_spectrum
 
-# thresh=0.248090529525
-
-# def get_threshhold(power_spectrum, thresh=0.6):
-#     for i in range(len(power_spectrum)):
-#         if sum(power_spectrum[i])/len(power_spectrum[i]) >= thresh:
-#             return i
+def get_frequency(f_bins):
+    frequencies = []
+    for bin in f_bins:
+        w = np.fft.fft(bin)
+        freqs = np.fft.fftfreq(len(bin))
+        idx = np.argmax(np.abs(w)**2)
+        freq = freqs[idx]
+        freq_hz = abs(freq*40000)
+        frequencies.append(freq_hz)
+    # average_freq = sum(frequencies)/len(frequencies)
+    return frequencies
 
 def hertz_mels(hertz):
     mels = 2595 * np.log10(1+hertz/700.0)
@@ -91,7 +95,7 @@ def mel_filterbank(power_spectrum):
     block_size = int(len(power_spectrum[0]))
     num_bands = int(13)
     min_hz = 0
-    max_hz = 8000
+    max_hz = 3000
     max_mel = int(hertz_mels(max_hz))
     min_mel = int(mels_hertz(min_hz))
 
@@ -161,11 +165,10 @@ def master(filename):
     threshhold = get_threshhold(data)
     end = get_end(data)
     data = new_data_start(data, threshhold, end)
-    # data = new_end_data(data)
     bins = split(data)
-    # threshhold = get_threshhold(bins)
+    # f_bins = freq_split(data)
+    # hertz = get_frequency(f_bins)
     power_spectrum = get_power_spectrum(bins)
-    # threshhold = get_threshhold(power_spectrum)
     filter_matrix = mel_filterbank(power_spectrum)
     dct_spectrum = MFCC(power_spectrum, filter_matrix)
     avg_spectrum = get_average(dct_spectrum)
@@ -179,6 +182,7 @@ def master(filename):
     
 
 # print master(os.path.abspath("audios/input_full_len.wav"))
+# print master(os.path.abspath("audios/tone_2.wav"))
 # print master(os.path.abspath("test.wav"))
 # rate, data = read_file("Alohamora_1.wav")
 # data = normalize(data)
