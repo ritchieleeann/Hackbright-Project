@@ -16,3 +16,7 @@ After the features for the voiceprint and the test audio are extracted, they are
 Currently, the user is able to record his or her voice in the browser. The test audio is then saved temporarily and tested against my password. This portion utilizes Python, Flask, HTML5, Bootstrap, JavaScript, AJAX, and the navigator.getUserMedia() API.
 
 ![Alt text](screenshots/waveforms.jpg "Audio Wavs")
+
+![Alt text](screenshots/spectrograms.jpg "Spectral Analysis")
+
+![Alt text](screenshots/filterbank.jpg "Mel Filters")
