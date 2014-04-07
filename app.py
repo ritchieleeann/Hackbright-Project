@@ -7,8 +7,12 @@ import tempfile
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def front_page():
+    return render_template("login.html")
+
+@app.route("/recorder", methods=["GET", "POST"])
+def recorder_page():
     return render_template("recorder.html")
 
 @app.route("/authorizing", methods=["POST"])

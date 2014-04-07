@@ -105,7 +105,8 @@ function uploadBlob(blob){
             // print the output from the upload script
             console.log(data);
             if (data == "match"){
-                outputElement.innerHTML ='Your password is correct';
+                window.location.href="/authorized";
+                // outputElement.innerHTML ='Your password is correct';
             }
             else {
                 outputElement.innerHTML ='Your password is incorrect';
