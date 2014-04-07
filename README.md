@@ -13,5 +13,6 @@ After the features for the voiceprint and the test audio are extracted, they are
 
 ###Web App
 #####(app.py, recorder.js, recorder.html)
-Currently, the user is able to record their voice in the browser. The test audio is then saved temporarily and tested against my password. This portion utilizes Python, Flask, HTML5, Bootstrap, JavaScript, AJAX, and the navigator.getUserMedia() API.
+Currently, the user is able to record his or her voice in the browser. The test audio is then saved temporarily and tested against my password. This portion utilizes Python, Flask, HTML5, Bootstrap, JavaScript, AJAX, and the navigator.getUserMedia() API.
 
+![Alt text](screenshots/waveforms.jpg "Audio Wavs")
