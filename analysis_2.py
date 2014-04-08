@@ -71,17 +71,17 @@ def get_power_spectrum(bins):
         power_spectrum.append(power)
     return power_spectrum
 
-def get_frequency(f_bins):
-    frequencies = []
-    for bin in f_bins:
-        w = np.fft.fft(bin)
-        freqs = np.fft.fftfreq(len(bin))
-        idx = np.argmax(np.abs(w)**2)
-        freq = freqs[idx]
-        freq_hz = abs(freq*40000)
-        frequencies.append(freq_hz)
-    # average_freq = sum(frequencies)/len(frequencies)
-    return frequencies
+# def get_frequency(f_bins):
+#     frequencies = []
+#     for bin in f_bins:
+#         w = np.fft.fft(bin)
+#         freqs = np.fft.fftfreq(len(bin))
+#         idx = np.argmax(np.abs(w)**2)
+#         freq = freqs[idx]
+#         freq_hz = abs(freq*40000)
+#         frequencies.append(freq_hz)
+#     # average_freq = sum(frequencies)/len(frequencies)
+#     return frequencies
 
 def hertz_mels(hertz):
     mels = 2595 * np.log10(1+hertz/700.0)
@@ -151,12 +151,12 @@ def get_average(dct_spectrum):
 #     return new_dct_spectrum
 
 
-def plot_wave(rate, data):
-    Time=np.linspace(0, len(data)/rate, num=len(data))
+# def plot_wave(rate, data):
+#     Time=np.linspace(0, len(data)/rate, num=len(data))
 
-    plt.title('Wave')
-    plt.plot(Time,data)
-    return plt.show()
+#     plt.title('Wave')
+#     plt.plot(Time,data)
+#     return plt.show()
 
 
 def master(filename):
@@ -166,13 +166,10 @@ def master(filename):
     end = get_end(data)
     data = new_data_start(data, threshhold, end)
     bins = split(data)
-    # f_bins = freq_split(data)
-    # hertz = get_frequency(f_bins)
     power_spectrum = get_power_spectrum(bins)
     filter_matrix = mel_filterbank(power_spectrum)
     dct_spectrum = MFCC(power_spectrum, filter_matrix)
     avg_spectrum = get_average(dct_spectrum)
-
 
     # new_dct_spectrum = un_split(dct_spectrum)
 
@@ -181,12 +178,7 @@ def master(filename):
     return avg_spectrum
     
 
-# print master(os.path.abspath("audios/input_full_len.wav"))
-# print master(os.path.abspath("audios/tone_2.wav"))
-# print master(os.path.abspath("test.wav"))
-# rate, data = read_file("Alohamora_1.wav")
-# data = normalize(data)
-# print data[0:100]
+
 
 
     
