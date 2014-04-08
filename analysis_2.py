@@ -16,7 +16,7 @@ def read_file(filename):
     data = np.fromstring(signal, 'Int16')
     if raw.getnchannels() == 2:
         data = data[::2]
-    rate= raw.getframerate()
+    rate = raw.getframerate()
     return rate, data
 
 def normalize(data):
@@ -54,13 +54,13 @@ def split(data, bin_len=400, bin_overlap=160):
     num_of_bins = len(bins)
     return bins
 
-def freq_split(data, bin_len=400, bin_overlap=0):
-    f_bins = []
-    for i in range(0,len(data), bin_len-bin_overlap):
-        f_bins.append(data[i:i+bin_len])
-    if len(f_bins[-1]) != bin_len: # if last bin is short of len
-        f_bins[-1] += [0] * (bin_len - len(f_bins[-1])) # zero pad it
-    return f_bins
+# def freq_split(data, bin_len=400, bin_overlap=0):
+#     f_bins = []
+#     for i in range(0,len(data), bin_len-bin_overlap):
+#         f_bins.append(data[i:i+bin_len])
+#     if len(f_bins[-1]) != bin_len: # if last bin is short of len
+#         f_bins[-1] += [0] * (bin_len - len(f_bins[-1])) # zero pad it
+#     return f_bins
 
 def get_power_spectrum(bins):
     power_spectrum = []

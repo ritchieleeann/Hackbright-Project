@@ -15,6 +15,8 @@ print test("audios/open_pod.wav", "test.wav")
 
 print test("audios/open_pod.wav", "audios/open_pod_2.wav")
 
+print test("audios/open_pod.wav", "audios/Andri.wav")
+
 
 
 
