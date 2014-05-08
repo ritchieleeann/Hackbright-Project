@@ -9,7 +9,7 @@ import itertools
 import os
 
 
-
+#read wav file and get data and rate
 def read_file(filename):
     raw = wave.open(filename)
     signal = raw.readframes(-1)
@@ -19,22 +19,26 @@ def read_file(filename):
     rate = raw.getframerate()
     return rate, data
 
+#normalize data betwen -1 and 1
 def normalize(data):
     data_max = max([abs(val) for val in data])
     new_range_val = 1
     data = [float(val)/data_max * new_range_val for val in data]
     return data
 
+#set a threshhold to start analysis
 def get_threshhold(data, thresh=.15):
     for i in range(len(data)):
         if data[i] >= thresh:
             return i
 
+#set an end threshhold for analysis
 def get_end(data, end_thresh=.1):
     for i in reversed(range(len(data))):
         if data[i] >= end_thresh:
             return i
 
+#create dataset with new threshholds
 def new_data_start(data, threshhold, end, min_len=40000):
     data = data[threshhold:end]
     if len(data) >= min_len:
@@ -42,7 +46,7 @@ def new_data_start(data, threshhold, end, min_len=40000):
     else:
         return [0] * len(data)
 
-
+#split data into consistent, overlapping bins
 def split(data, bin_len=400, bin_overlap=160):
     bins = []
     for i in range(0,len(data), bin_len-bin_overlap):
@@ -54,6 +58,7 @@ def split(data, bin_len=400, bin_overlap=160):
     num_of_bins = len(bins)
     return bins
 
+#setting up an additional analysis for frequency
 # def freq_split(data, bin_len=400, bin_overlap=0):
 #     f_bins = []
 #     for i in range(0,len(data), bin_len-bin_overlap):
@@ -62,6 +67,7 @@ def split(data, bin_len=400, bin_overlap=160):
 #         f_bins[-1] += [0] * (bin_len - len(f_bins[-1])) # zero pad it
 #     return f_bins
 
+#transform from time spectrum to frequency spectrum
 def get_power_spectrum(bins):
     power_spectrum = []
     for bin in bins:
@@ -71,6 +77,7 @@ def get_power_spectrum(bins):
         power_spectrum.append(power)
     return power_spectrum
 
+#setting up additional analysis for frequency
 # def get_frequency(f_bins):
 #     frequencies = []
 #     for bin in f_bins:
@@ -83,14 +90,17 @@ def get_power_spectrum(bins):
 #     # average_freq = sum(frequencies)/len(frequencies)
 #     return frequencies
 
+#hertz to mels conversion
 def hertz_mels(hertz):
     mels = 2595 * np.log10(1+hertz/700.0)
     return mels
 
+#mels to hertz conversion
 def mels_hertz(mels):
     hertz = 700*(10**(mels/2595.0)-1)
     return hertz
 
+#set up filterbank with 13 bands up to 3000hz
 def mel_filterbank(power_spectrum):
     block_size = int(len(power_spectrum[0]))
     num_bands = int(13)
@@ -124,6 +134,7 @@ def mel_filterbank(power_spectrum):
 
     return filter_matrix.transpose()
 
+#dot product of power spectrum and mel filterbank
 def MFCC(power_spectrum, filter_matrix):
     dct_spectrum = []
     for power in power_spectrum:
@@ -133,24 +144,15 @@ def MFCC(power_spectrum, filter_matrix):
         dct_spectrum.append(dct_item)
     return dct_spectrum
 
+#take average MFCC for each bin
 def get_average(dct_spectrum):
-    #take average MFCC for each bin
     avg_spectrum = []
     for each in dct_spectrum:
         avg = sum(each)/len(each)
         avg_spectrum.append(avg)
     return avg_spectrum
 
-# def un_split(dct_spectrum):
-#     new_dct_spectrum = [item for sublist in dct_spectrum for item in sublist]
-
-#     # new_dct_spectrum = []
-#     # for dct_item in dct_spectrum:
-#     #     for item in dct_item:
-#     #         new_dct_spectrum.append(item)
-#     return new_dct_spectrum
-
-
+#creates wavform graph (way to test if rate and data look correct)
 # def plot_wave(rate, data):
 #     Time=np.linspace(0, len(data)/rate, num=len(data))
 
@@ -170,8 +172,6 @@ def master(filename):
     filter_matrix = mel_filterbank(power_spectrum)
     dct_spectrum = MFCC(power_spectrum, filter_matrix)
     avg_spectrum = get_average(dct_spectrum)
-
-    # new_dct_spectrum = un_split(dct_spectrum)
 
     # plt.show() = plot_wave(rate, data)
 
