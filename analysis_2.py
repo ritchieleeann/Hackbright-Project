@@ -58,15 +58,6 @@ def split(data, bin_len=400, bin_overlap=160):
     num_of_bins = len(bins)
     return bins
 
-#setting up an additional analysis for frequency
-# def freq_split(data, bin_len=400, bin_overlap=0):
-#     f_bins = []
-#     for i in range(0,len(data), bin_len-bin_overlap):
-#         f_bins.append(data[i:i+bin_len])
-#     if len(f_bins[-1]) != bin_len: # if last bin is short of len
-#         f_bins[-1] += [0] * (bin_len - len(f_bins[-1])) # zero pad it
-#     return f_bins
-
 #transform from time spectrum to frequency spectrum
 def get_power_spectrum(bins):
     power_spectrum = []
@@ -76,19 +67,6 @@ def get_power_spectrum(bins):
         power = np.square(magnitude)
         power_spectrum.append(power)
     return power_spectrum
-
-#setting up additional analysis for frequency
-# def get_frequency(f_bins):
-#     frequencies = []
-#     for bin in f_bins:
-#         w = np.fft.fft(bin)
-#         freqs = np.fft.fftfreq(len(bin))
-#         idx = np.argmax(np.abs(w)**2)
-#         freq = freqs[idx]
-#         freq_hz = abs(freq*40000)
-#         frequencies.append(freq_hz)
-#     # average_freq = sum(frequencies)/len(frequencies)
-#     return frequencies
 
 #hertz to mels conversion
 def hertz_mels(hertz):
