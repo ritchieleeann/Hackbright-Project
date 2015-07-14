@@ -29,7 +29,7 @@ def authorization():
 
     with open('test.wav', 'wb+') as f:
         f.write(audio_data)
-        
+
         seqx = analysis_2.master(os.path.abspath("audios/open_pod.wav"))
         seqy = analysis_2.master('test.wav')
 

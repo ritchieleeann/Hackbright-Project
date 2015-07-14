@@ -84,7 +84,7 @@ window.onkeydown = function(e){
 
 
     }
-}
+};
 
 
 function uploadBlob(blob){
@@ -112,7 +112,7 @@ function uploadBlob(blob){
                 outputElement.innerHTML ='Your password is incorrect';
             }
         });
-    };      
+    };
     // trigger the read from the reader...
     reader.readAsDataURL(blob);
     // outputElement.innerHTML = 'Your password is incorrect';
@@ -145,7 +145,7 @@ function mergeBuffers(channelBuffer, recordingLength){
   return result;
 }
 
-function writeUTFBytes(view, offset, string){ 
+function writeUTFBytes(view, offset, string){
   var lng = string.length;
   for (var i = 0; i < lng; i++){
     view.setUint8(offset + i, string.charCodeAt(i));
@@ -171,7 +171,7 @@ function success(e){
     Lower values for buffer size will result in a lower (better) latency. 
     Higher values will be necessary to avoid audio breakup and glitches */
     var bufferSize = 2048;
-    recorder = context.createJavaScriptNode(bufferSize, 2, 2);
+    recorder = context.createScriptProcessor(bufferSize, 2, 2);
 
     recorder.onaudioprocess = function(e){
         if (!recording) return;
@@ -181,9 +181,9 @@ function success(e){
         leftchannel.push (new Float32Array (left));
         rightchannel.push (new Float32Array (right));
         recordingLength += bufferSize;
-    }
+    };
 
     // we connect the recorder
     volume.connect (recorder);
-    recorder.connect (context.destination); 
-} 
+    recorder.connect (context.destination);
+}
